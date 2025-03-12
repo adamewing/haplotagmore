@@ -23,18 +23,10 @@ def get_het_vars(args):
 
     p_idx = 0
 
-    # chromosomes = ['chr'+str(c) for c in list(range(1,23))] # human-specific
-    # chromosomes.append('chrX')
-
-    # if args.chrom is not None:
-    #     chromosomes = args.chrom
-
     snps = dd(Intersecter)
     count = 0
 
     for rec in vcf:
-        # if rec.CHROM not in chromosomes:
-        #     continue
 
         if rec.FILTER is not None:
             if not args.all_snps:
@@ -124,18 +116,10 @@ def get_indels(read, genome):
                 finally:
                     return indels
                     
-                #     print(read.cigarstring)
-                #     print(query_lookup)
-                #     print(f'offending key: {q_pos-1}')
-
             lastref = ref_start
             assert read.reference_name in genome.references
             bases = genome.fetch(read.reference_name, ref_start, ref_start+op[1])
             indels[ref_start] = ('D', bases)
-            # except:
-            #     print(read.to_string())
-            #     print(lastop)
-            #     sys.exit(1)
 
         lastop = op[0]
 
@@ -157,9 +141,6 @@ def main(args):
 
     out_fn = '.'.join(args.bam.split('.')[:-1]) + '.tagmore.bam'
 
-    # if args.chrom is not None:
-    #     out_fn = '.'.join(args.bam.split('.')[:-1]) + '.' + args.chrom + '.tagmore.bam'
-
     logger.info('output bam: %s' % out_fn)
     out = pysam.AlignmentFile(out_fn, 'wb', template=bam)
 
@@ -177,20 +158,12 @@ def main(args):
         if read.is_duplicate:
             continue
 
-        # if args.chrom is not None:
-        #     if read.reference_name != args.chrom:
-        #         continue
-
         if not read.seq:
             continue
 
         if read.is_unmapped:
             out.write(read)
             continue
-
-        #if read.seq is None:
-        #    out.write(read)
-        #    continue
 
         count_reads += 1
 
@@ -293,10 +266,6 @@ def main(args):
                 out.write(read)
             continue
 
-        # if args.chrom is not None:
-        #     if read.reference_name != args.chrom:
-        #         continue
-
         if read.has_tag('PS'):
             last_PS = read.get_tag('PS')
 
@@ -358,8 +327,8 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--vcf', required=True, help='vcf')
     parser.add_argument('-b', '--bam', required=True, help='bam')
     parser.add_argument('-r', '--ref', required=True, help='indexed fasta')
-    parser.add_argument('--minvotes', default=1)
-    parser.add_argument('--minmargin', default=1)
+    parser.add_argument('--minvotes', default=1, help='default = 1')
+    parser.add_argument('--minmargin', default=1, help='default = 1')
     parser.add_argument('--debug', action='store_true', default=False)
     parser.add_argument('--all_snps', action='store_true', default=False, help='ignore vcf filters (default: PASS only)')
     parser.add_argument('--loose_indels', action='store_true', default=False, help='allow left end of deletion or right end of insertion matching (useful for nanopore indels)')
