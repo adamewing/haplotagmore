@@ -26,7 +26,7 @@ def get_het_vars(args):
     snps = dd(Intersecter)
     count = 0
 
-    for rec in vcf:
+    for rec in tqdm(vcf):
 
         if rec.FILTER is not None:
             if not args.all_snps:
@@ -117,9 +117,11 @@ def get_indels(read, genome):
                     return indels
                     
             lastref = ref_start
-            assert read.reference_name in genome.references
-            bases = genome.fetch(read.reference_name, ref_start, ref_start+op[1])
-            indels[ref_start] = ('D', bases)
+            if read.reference_name in genome.references:
+                bases = genome.fetch(read.reference_name, ref_start, ref_start+op[1])
+                indels[ref_start] = ('D', bases)
+            else:
+                logger.warning(f'{read.reference_name} not in genome')
 
         lastop = op[0]
 
@@ -303,7 +305,8 @@ def main(args):
 
         count_success += 1
 
-        logger.debug('read %s (%s) matched: %d, unmatched: %d, ins_matched: %d, del_matched: %d, vote_1: %d, vote_2: %d, hp: %d' % (read.qname, str(read.is_reverse), matched, unmatched, ins_matched, del_matched, votes[read.qname][0], votes[read.qname][1], hp))
+        logger.debug('read %s (%s) matched: %d, unmatched: %d, ins_matched: %d, del_matched: %d, vote_1: %d, vote_2: %d, hp: %d' % 
+                    (read.qname, str(read.is_reverse), matched, unmatched, ins_matched, del_matched, votes[read.qname][0], votes[read.qname][1], hp))
 
         if last_PS is None:
             last_PS = read.reference_start
